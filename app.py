@@ -21,22 +21,25 @@ with col_inc:
     gross_income = st.number_input(
         "Enter Monthly Gross Income (BWP / P):",
         min_value=0.0,
-        value=16000.0,
+        value=10000.0,
         step=500.0,
         format="%.2f"
     )
 
-# Determine Applicable Default Tier based on Gross Income
+# Determine Applicable Default Tier & Key Prefix based on Gross Income
 if gross_income < 15000:
-    tier_name = "Base Level Tier"
+    tier_name = "Base Level Tier (Up to P10k / < P15k)"
+    tier_key = "base"
     default_officer = 3500.0
     default_director_total = 1000.0
 elif 15000 <= gross_income < 20000:
     tier_name = "Level 2 Tier (P15k Threshold)"
+    tier_key = "l2"
     default_officer = 7000.0
     default_director_total = 2000.0
 else:  # Gross Income >= P20,000
-    tier_name = "Level 3 Tier (Cap Level)"
+    tier_name = "Level 3 Tier (Cap Level - P20k+)"
+    tier_key = "l3"
     default_officer = 10500.0
     default_director_total = 3000.0
 
@@ -82,35 +85,35 @@ with col_fixed:
         if is_active:
             selected_expenses[item["label"]] = val
 
-# --- Allowance Default Items ---
+# --- Allowance Default Items (Tied dynamically to tier_key) ---
 with col_allowances:
     st.subheader("2. Compensation & Allowances")
     
     # Officer Allowance
     c_off_check, c_off_amount = st.columns([2, 1])
     with c_off_check:
-        officer_active = st.checkbox("Officer Allowance", value=True, key="chk_officer")
+        officer_active = st.checkbox("Officer Allowance", value=True, key=f"chk_officer_{tier_key}")
     with c_off_amount:
         officer_val = st.number_input(
             "Officer Allowance P", 
             value=default_officer, 
             step=500.0, 
-            key="val_officer", 
+            key=f"val_officer_{tier_key}", 
             label_visibility="collapsed"
         )
     if officer_active:
         selected_expenses["Officer Allowance"] = officer_val
 
-    # Director Allowances
+    # Director Allowances Total
     c_dir_check, c_dir_amount = st.columns([2, 1])
     with c_dir_check:
-        director_active = st.checkbox("Director Allowances Total", value=True, key="chk_director")
+        director_active = st.checkbox("Director Allowances Total", value=True, key=f"chk_director_{tier_key}")
     with c_dir_amount:
         director_val = st.number_input(
             "Director Allowance P", 
             value=default_director_total, 
             step=500.0, 
-            key="val_director", 
+            key=f"val_director_{tier_key}", 
             label_visibility="collapsed"
         )
     if director_active:
